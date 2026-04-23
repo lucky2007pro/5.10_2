@@ -4,9 +4,8 @@ from rest_framework.exceptions import ValidationError
 from .models import Product
 from .serializers import ProductSerializer, ProductDetailAdminSerializer
 
-
-class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.filter(is_available=True)
+class ProductListCreateView(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -16,25 +15,20 @@ class ProductListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-
-        custom_response_data = {
+        return Response({
             "success": True,
-            "message": "Maxsulotlar ro'yxati muvaffaqiyatli olindi",
+            "message": "Maxsulotlar ro'yxati",
             "total_count": queryset.count(),
             "data": serializer.data
-        }
-        return Response(custom_response_data)
+        })
 
-
-class ProductUpdateView(generics.UpdateAPIView):
+class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductDetailAdminSerializer
 
     def perform_update(self, serializer):
         price = serializer.validated_data.get('price', serializer.instance.price)
-        stock = serializer.validated_data.get('stock', serializer.instance.stock)
-
-        if price < 0:
+        if price is not None and price < 0:
             raise ValidationError("Narx manfiy bo'lishi mumkin emas!")
 
         instance = serializer.save()
