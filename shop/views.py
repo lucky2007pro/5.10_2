@@ -8,7 +8,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
 
     def get_serializer_class(self):
-        if self.request.user.is_staff:
+        if self.request.method == 'POST' or self.request.user.is_staff:
             return ProductDetailAdminSerializer
         return ProductSerializer
 
